@@ -38,20 +38,20 @@ def calculate_loads(GRF,g,mass,length,r,theta):
     torques = np.zeros((3,3), dtype=float)
 
     # Start with Link 3 (end effector)
-    F23 = np.add(-GRF, mass[2]*g)
-    M23 = np.cross(r[2] * np.array([-np.cos(theta[2]), np.sin(theta[2]), 0]), F23) + np.cross(r[2] * np.array([np.cos(theta[2]), -np.sin(theta[2]), 0]), GRF)
+    F23 = np.add(GRF, mass[2]*g)
+    M23 = np.cross(r[2] * np.array([-np.cos(np.radians(180)-theta[2]), np.sin(np.radians(180)-theta[2]), 0]), F23) - np.cross(r[2] * np.array([np.cos(np.radians(180)-theta[2]), -np.sin(np.radians(180)-theta[2]), 0]), GRF)
     forces[2] = F23
     torques[2] = M23
 
     # Link 2
     F12 = np.add(F23, mass[1]*g)
-    M12 = M23 - np.cross(r[1] * np.array([-np.cos(theta[1]), np.sin(theta[1]), 0]), F12) - np.cross(r[1] * np.array([np.cos(theta[1]), -np.sin(theta[1]), 0]), -F23)
+    M12 = -M23 - np.cross(r[1] * np.array([np.cos(theta[1]), np.sin(theta[1]), 0]), F12) + np.cross(r[1] * np.array([-np.cos(theta[1]), -np.sin(theta[1]), 0]), -F23)
     forces[1] = F12
     torques[1] = M12
 
     # Link 1 (out of plane motor)
     F01 = np.add(F12, mass[0]*g)
-    M01 = -np.cross(r[0] * np.array([0, np.sin(theta[0]), -np.cos(theta[0])]), F01) -np.cross(r[0] * np.array([0, -np.sin(theta[0]), np.cos(theta[0])]), -F12)
+    M01 = np.cross(r[0] * np.array([0, -np.sin(theta[0]), -np.cos(theta[0])]), F01) -np.cross(r[0] * np.array([0, np.sin(theta[0]), np.cos(theta[0])]), -F12)
     forces[0] = F01
     torques[0] = M01
 
@@ -81,9 +81,13 @@ def max_loads(GRF, g, m, L, r):
     and max torque magnitude, along with the angles (deg) at which they occur.
     """
     # Grids in degrees (range stop is exclusive)
-    theta1_deg = range(-90, 90, 5)   # [-90, 85]
-    theta2_deg = range(0, 360, 5)    # [0, 355]
-    theta3_deg = range(0, 135, 5)    # [0, 130]
+    # theta1_deg = range(-90, 95, 5)   # [-90, 90]
+    # theta2_deg = range(0, 365, 5)    # [0, 360]
+    # theta3_deg = range(0, 140, 5)    # [0, 135]
+
+    theta1_deg = range(-45, 50, 5)   # [-45, 45]
+    theta2_deg = range(0, 95, 5)    # [0, 90]
+    theta3_deg = range(0, 140, 5)    # [0, 135]
 
     max_F = np.zeros(3, dtype=float)
     max_F_at = [(None, None, None)] * 3
