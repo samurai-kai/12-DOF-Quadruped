@@ -1,4 +1,4 @@
-#Kai De La Cruz
+# Kai De La Cruz
 # 3DOF Leg Static Load Analysis using Newton-Euler Method
 # Date: 10/10/2023
 # Updated: 06/10/2024
