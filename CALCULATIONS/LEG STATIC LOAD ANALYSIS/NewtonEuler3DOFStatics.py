@@ -116,12 +116,13 @@ def max_loads(GRF, g, m, L, r):
     }
 
 if __name__ == "__main__":
-    GRF = np.array([0, 50, 0])  # Example ground reaction force in Newtons
+    GRF = np.array([0, 88, 0])  # Example ground reaction force in Newtons
     forces, torques = calculate_loads(GRF, g, m, L, r, theta)
     force_imperial = [metric_to_imperial(rss(f), 'force') for f in forces]
     torque_imperial = [metric_to_imperial(rss(t), 'torque') for t in torques]
-
+    print()
     print(f"Ground Reaction Force: {rss(GRF):.2f} N ({metric_to_imperial(rss(GRF), 'force'):.2f} lbs)")
+    print()
     # print(f"Joint Angles (degrees): {np.degrees(theta)}")
 
     # F1 = rss(forces[0])
@@ -156,6 +157,6 @@ if __name__ == "__main__":
     print("Max joint torques (ft-lbs):", [f"{t:.2f}" for t in torques_imperial])
     print("At angles (deg):", res["max_torque_at_deg"])
     
-
+    print()
     
 
