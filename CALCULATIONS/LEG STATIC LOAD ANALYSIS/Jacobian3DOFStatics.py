@@ -21,22 +21,6 @@ def dh_transform_sym(theta, d, a, alpha):
     ])
     return sp.simplify(T)
 
-def dh_transform(theta, d, a, alpha, decimals=12):
-    """DH transformation for one joint, with rounding to remove floating errors."""
-    ct = np.cos(theta)
-    st = np.sin(theta)
-    ca = np.cos(alpha)
-    sa = np.sin(alpha)
-
-    T = np.array([
-        [ct, -st*ca,  st*sa, a*ct],
-        [st,  ct*ca, -ct*sa, a*st],
-        [0,     sa,     ca,    d],
-        [0,     0,      0,    1]
-    ])
-
-    return np.round(T, decimals)
-
 def frame_tf(Tn,Tm):
     """
     Compute the transformation from frame n to frame m.
@@ -56,18 +40,6 @@ def output_z_p(T):
     z = T[0:3, 2]
     p = T[0:3, 3]
     return z, p
-
-def jacobian(z,p,pe):
-  ''' Compute the Jacobian matrix for 3 dof leg'''
-  Jp = np.zeros((3,4), dtype=float)
-  Jo = np.zeros((3,4), dtype=float)
-
-  for i in range(4):
-      Jp[:,i] = np.cross(z[:,i], (pe - p[:,i]))
-      Jo[:,i] = z[:,i]
-
-  J = np.vstack((Jp, Jo))
-  return J
 
 def jacobian_sym(z_list, p_list, p_e):
     # z_list, p_list: lists of 3×1 sympy Matrices for joints 1..n
@@ -127,7 +99,7 @@ if __name__ == "__main__":
     J = sp.simplify(jacobian_sym([z1, z2, z3], [p1, p2, p3], pe))
     # sp.pprint(J)
 
-    F = sp.Matrix([0, 88, 0, 0, 0, 0])  # 88 N force in y direction
+    F = sp.Matrix([0, 0, 88, 0, 0, 0])  # 88 N force in z-direction in universal coordinate frame
     # sp.pprint(F)
 
     print("Symbolic Joint Torques (Nm):")
@@ -137,13 +109,13 @@ if __name__ == "__main__":
 
     # Plug in thetas and lengths
     subs = {
-        theta1: np.deg2rad(-45),
-        theta2: np.deg2rad(90),
-        theta3: np.deg2rad(0),
-        L1: 0.1,    # find this from CAD
-        L2: 0.083,
-        L3: 0.146,
-        L4: 0.165
+        theta1: np.deg2rad(0),
+        theta2: np.deg2rad(45),
+        theta3: np.deg2rad(90),
+        L1: 0.061,    # m1 to m2 rotation axis
+        L2: 0.083,    # link 1 length
+        L3: 0.146,    # link 2 length
+        L4: 0.165     # link 3 length
     }
     tau_num = tau.evalf(subs=subs)
     print("Numerical Joint Torques (Nm):")
