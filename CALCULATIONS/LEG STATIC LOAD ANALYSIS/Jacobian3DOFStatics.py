@@ -102,26 +102,28 @@ if __name__ == "__main__":
     F = sp.Matrix([0, 0, 174, 0, 0, 0])  # 88 N force in z-direction in universal coordinate frame
     # sp.pprint(F)
 
-    print("Symbolic Joint Torques (Nm):")
+    # print("Symbolic Joint Torques (Nm):")
     tau = sp.simplify(torque_from_force(J, F))
     # sp.pprint(tau)
     # print()
 
     # Plug in thetas and lengths
     subs = {
-        theta1: np.deg2rad(0),
-        theta2: np.deg2rad(45),
-        theta3: np.deg2rad(90),
+        theta1: np.deg2rad(-45),
+        theta2: np.deg2rad(10),
+        theta3: np.deg2rad(0),
         L1: 0.061,    # m1 to m2 rotation axis
         L2: 0.083,    # link 1 length
         L3: 0.146,    # link 2 length
         L4: 0.165     # link 3 length
     }
     tau_num = tau.evalf(subs=subs)
-    print("Numerical Joint Torques (Nm):")
-    sp.pprint(tau_num)
-    print()
+    # print("Numerical Joint Torques (Nm):")
+    # sp.pprint(tau_num)
+    # print()
 
     print("Joint Torques (ft-lbs):")
     tau_ftlb = tau_num * 0.73756214927727
-    sp.pprint(tau_ftlb)
+    sp.pprint(tau_ftlb) # transpose([tau1, tau2, tau3]) in ft-lbs
+    print(f"Joint angles (deg): {[subs[theta1]*180/np.pi, subs[theta2]*180/np.pi, subs[theta3]*180/np.pi]}  ")
+    

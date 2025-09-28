@@ -7,7 +7,7 @@ import numpy as np
 import itertools
 
 # Define gravitational acceleration
-g = np.array([0, -9.81, 0]) # m/s^2
+g = np.array([0, 0, 0]) # m/s^2
 
 # Define link lengths (in meters)
 L1 = 0.083  # Length of link 1
@@ -151,12 +151,14 @@ if __name__ == "__main__":
     forces_imperial = [metric_to_imperial(f, 'force') for f in res["max_force"]]
     torques_imperial = [metric_to_imperial(t, 'torque') for t in res["max_torque"]]
 
+    # [Joint 1, Joint 2, Joint 3]
     print("Max joint forces (N):", [f"{f:.2f}" for f in res["max_force"]])
     print("Max joint forces (lbs):", [f"{f:.2f}" for f in forces_imperial])
     print("At angles (deg):", res["max_force_at_deg"])
     
     print()
 
+    # [Joint 1, Joint 2, Joint 3]
     print("Max joint torques (N·m):", [f"{t:.2f}" for t in res["max_torque"]])
     print("Max joint torques (ft-lbs):", [f"{t:.2f}" for t in torques_imperial])
     print("At angles (deg):", res["max_torque_at_deg"])
