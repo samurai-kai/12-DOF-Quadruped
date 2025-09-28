@@ -120,7 +120,7 @@ def max_loads(GRF, g, m, L, r):
     }
 
 if __name__ == "__main__":
-    GRF = np.array([0, 88, 0])  # Example ground reaction force in Newtons
+    GRF = np.array([0, 174, 0])  # Example ground reaction force in Newtons
     forces, torques = calculate_loads(GRF, g, m, L, r, theta)
     force_imperial = [metric_to_imperial(rss(f), 'force') for f in forces]
     torque_imperial = [metric_to_imperial(rss(t), 'torque') for t in torques]

@@ -99,7 +99,7 @@ if __name__ == "__main__":
     J = sp.simplify(jacobian_sym([z1, z2, z3], [p1, p2, p3], pe))
     # sp.pprint(J)
 
-    F = sp.Matrix([0, 0, 88, 0, 0, 0])  # 88 N force in z-direction in universal coordinate frame
+    F = sp.Matrix([0, 0, 174, 0, 0, 0])  # 88 N force in z-direction in universal coordinate frame
     # sp.pprint(F)
 
     print("Symbolic Joint Torques (Nm):")
