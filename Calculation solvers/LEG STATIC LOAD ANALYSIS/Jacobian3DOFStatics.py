@@ -1,129 +1,131 @@
 # Kai De La Cruz
-# 3DOF Leg Static Load Analysis using Jacobian Method
-# Date: 9/26/2025
-# Updated: 9/26/2025
+# 3DOF Leg Static Load Analysis using Jacobian Method (Imperial Units)
+# Date: 10/07/2025
 
 import numpy as np
 import sympy as sp
 
+# ---------- DH Transform ----------
 def dh_transform_sym(theta, d, a, alpha):
-    """DH transformation using SymPy (symbolic)."""
-    ct = sp.cos(theta)
-    st = sp.sin(theta)
-    ca = sp.cos(alpha)
-    sa = sp.sin(alpha)
-
+    """Standard Denavit–Hartenberg transformation (symbolic)."""
+    ct, st = sp.cos(theta), sp.sin(theta)
+    ca, sa = sp.cos(alpha), sp.sin(alpha)
     T = sp.Matrix([
         [ct, -st*ca,  st*sa, a*ct],
         [st,  ct*ca, -ct*sa, a*st],
-        [0,     sa,     ca,    d],
-        [0,     0,      0,    1]
+        [0,      sa,     ca,   d],
+        [0,       0,      0,   1]
     ])
     return sp.simplify(T)
 
-def frame_tf(Tn,Tm):
-    """
-    Compute the transformation from frame n to frame m.
-    Tn: Homogeneous transformation matrix of frame n
-    Tm: Homogeneous transformation matrix of frame m
-    Returns the transformation matrix from frame m to frame n.
-    """
-    Tnm = Tm @ Tn
-    return Tnm
+# ---------- Frame Composition ----------
+def frame_tf(Tn, Tm):
+    """Compose two DH transforms: Tnm = Tm @ Tn."""
+    return Tm @ Tn
 
+# ---------- Extract z-axis and origin ----------
 def output_z_p(T):
-    """
-    Extract the z-axis and position vector from a homogeneous transformation matrix.
-    T: Homogeneous transformation matrix
-    Returns the z-axis (3x1) and position vector (3x1).
-    """
+    """Extract z-axis (rotation axis) and origin position vector from T."""
     z = T[0:3, 2]
     p = T[0:3, 3]
     return z, p
 
+# ---------- Jacobian ----------
 def jacobian_sym(z_list, p_list, p_e):
-    # z_list, p_list: lists of 3×1 sympy Matrices for joints 1..n
+    """Build full 6×n geometric Jacobian."""
     Jp = sp.Matrix.hstack(*[z_list[i].cross(p_e - p_list[i]) for i in range(len(z_list))])
     Jo = sp.Matrix.hstack(*[z_list[i] for i in range(len(z_list))])
     return sp.Matrix.vstack(Jp, Jo)
 
+# ---------- Torque computation ----------
 def torque_from_force(J, F):
-    """
-    Compute the joint torques from an end-effector force using the Jacobian transpose method.
-    J: Jacobian matrix (6xn)
-    F: End-effector force vector (6x1)
-    Returns the joint torque vector (nx1).
-    """
-    tau = J.T @ F
-    return tau
+    """Joint torques via Jacobian transpose method."""
+    return J.T @ F
 
+
+# ======================================================
+# ====================== MAIN ==========================
+# ======================================================
 if __name__ == "__main__":
-    theta1 = sp.Symbol('theta1')
-    theta2 = sp.Symbol('theta2')
-    theta3 = sp.Symbol('theta3')
-    L1 = sp.Symbol('L1')
-    L2 = sp.Symbol('L2')
-    L3 = sp.Symbol('L3')
-    L4 = sp.Symbol('L4')
+    # --- Symbolic variables ---
+    theta1, theta2, theta3 = sp.symbols('theta1 theta2 theta3')
+    L1, L2, L3, L4 = sp.symbols('L1 L2 L3 L4')
 
-    T01 = dh_transform_sym(np.pi/2,0,0,np.pi/2)
+    # --- DH setup (matches your NE model) ---
+    T01 = dh_transform_sym(np.pi/2, 0, 0, np.pi/2)
     T12 = dh_transform_sym(theta1 - sp.pi/2, L1, 0, -sp.pi/2)
     T23 = dh_transform_sym(theta2 - sp.pi/2, L2, L3, 0)
     T3e = dh_transform_sym(theta3, 0, L4, 0)
-    # sp.pprint(T01)
-    # sp.pprint(T12)
-    # sp.pprint(T23)
-    # sp.pprint(T3e)
 
-    T = [T01, T12, T23, T3e]
-    T02 = frame_tf(T[0], T[1])
-    T03 = frame_tf(T02, T[2])
-    T0e = frame_tf(T03, T[3])
+    # --- Chain transformations ---
+    T02 = frame_tf(T01, T12)
+    T03 = frame_tf(T02, T23)
+    T0e = frame_tf(T03, T3e)
 
-    # sp.pprint(T03)
-
+    # --- Extract z and p for each joint ---
     z1, p1 = output_z_p(T01)
     z2, p2 = output_z_p(T02)
     z3, p3 = output_z_p(T03)
-    ze, pe = output_z_p(T0e)  # pe used, ze not needed in J
+    _,  pe = output_z_p(T0e)
 
-    # print("z1:", z1)
-    # print("p1:", p1)
-    # print("z2:", z2)
-    # print("p2:", p2)
-    # print("z3:", z3)
-    # print("p3:", p3)
-    # print("ze:", ze)
-    # print("pe:", pe)
-
+    # --- Build Jacobian (6×3) ---
     J = sp.simplify(jacobian_sym([z1, z2, z3], [p1, p2, p3], pe))
-    # sp.pprint(J)
 
-    F = sp.Matrix([0, 0, 174, 0, 0, 0])  # 88 N force in z-direction in universal coordinate frame
-    # sp.pprint(F)
+    # --- External wrench (force only) ---
+    # 58 N = 13.03 lbf upward; we keep N for math, convert later
+    F = sp.Matrix([0, 0, 58, 0, 0, 0])
 
-    # print("Symbolic Joint Torques (Nm):")
+    # --- Joint torques (Nm) ---
     tau = sp.simplify(torque_from_force(J, F))
-    # sp.pprint(tau)
-    # print()
 
-    # Plug in thetas and lengths
+    # --- Substitute numeric parameters ---
     subs = {
         theta1: np.deg2rad(-45),
-        theta2: np.deg2rad(10),
+        theta2: np.deg2rad(0),
         theta3: np.deg2rad(0),
-        L1: 0.061,    # m1 to m2 rotation axis
-        L2: 0.083,    # link 1 length
-        L3: 0.146,    # link 2 length
-        L4: 0.165     # link 3 length
+        L1: 0.061,
+        L2: 0.083,
+        L3: 0.146,
+        L4: 0.165
     }
     tau_num = tau.evalf(subs=subs)
-    # print("Numerical Joint Torques (Nm):")
-    # sp.pprint(tau_num)
-    # print()
 
-    print("Joint Torques (ft-lbs):")
-    tau_ftlb = tau_num * 0.73756214927727
-    sp.pprint(tau_ftlb) # transpose([tau1, tau2, tau3]) in ft-lbs
-    print(f"Joint angles (deg): {[subs[theta1]*180/np.pi, subs[theta2]*180/np.pi, subs[theta3]*180/np.pi]}  ")
-    
+    # ==================================================
+    # ========== Imperial Unit Conversions =============
+    # ==================================================
+    N_to_lbf   = 0.224809        # 1 N = 0.224809 lbf
+    Nm_to_ftlb = 0.73756214927727  # 1 N·m = 0.737562 ft·lbf
+
+    # Convert
+    tau_ftlb = tau_num * Nm_to_ftlb
+    F_lbf = F * N_to_lbf
+
+    # ==================================================
+    # =============== Report Output ====================
+    # ==================================================
+    print("\n" + "="*55)
+    print("3DOF LEG STATIC LOAD ANALYSIS (JACOBIAN METHOD)")
+    print("Results in Imperial Units")
+    print("="*55)
+
+    theta_vals_deg = [
+        float(subs[theta1] * 180 / np.pi),
+        float(subs[theta2] * 180 / np.pi),
+        float(subs[theta3] * 180 / np.pi)
+    ]
+
+    print("\nJoint Angles (degrees):")
+    print(f"θ1 = {theta_vals_deg[0]:.2f}°,  θ2 = {theta_vals_deg[1]:.2f}°,  θ3 = {theta_vals_deg[2]:.2f}°")
+
+
+    print("\nApplied Foot Force [lbf]:")
+    sp.pprint(F_lbf[0:3, :])  # only linear part
+
+    print("\nJoint Torques [ft·lbf]:")
+    sp.pprint(tau_ftlb)
+
+    print("\nNotes:")
+    print(" - Positive torque = actuator torque resisting external load.")
+    print(" - Computed using Jacobian Transpose τ = Jᵀ·F.")
+    print(" - Geometry & DH parameters identical to NE statics model.")
+    print("="*55)
