@@ -154,28 +154,73 @@ def compute_forces(p: JumpParams) -> JumpResults:
     )
 
 def print_summary(p: JumpParams, r: JumpResults) -> None:
+    # --- unit factors ---
+    N2lbf   = 0.224809
+    m2ft    = 3.28084
+    kg2lbm  = 2.20462
+
+    # Body weight in N and lbf
+    BW_N   = p.mass * p.g
+    BW_lbf = BW_N * N2lbf
+
     def row(name: str, val: float, unit: str = ""):
         unit = f" {unit}" if unit else ""
         print(f"{name:<40s}: {val:>10.3f}{unit}")
-    print("\nInputs:")
-    for k, v in asdict(p).items():
-        if k not in ("rise_frac", "fall_frac", "g"):
-            print(f"  {k:>22s}: {v}")
-    print("\nOutputs:")
-    row("Takeoff required v0", r.v0, "m/s")
-    row("Takeoff impulse J", r.J_takeoff, "N·s")
-    row("Avg GRF (takeoff)", r.Fgrf_avg_takeoff, "N")
-    row("Peak GRF (takeoff)", r.Fgrf_peak_takeoff, "N")
-    row("Per-leg avg (takeoff)", r.Fleg_avg_takeoff, "N")
-    row("Per-leg peak (takeoff)", r.Fleg_peak_takeoff, "N")
-    row("Impact speed (landing)", r.v_impact, "m/s")
-    row("Landing time used", r.landing_time_used, "s")
-    if r.zeta is not None and r.omega_n is not None:
-        row("ζ (damping ratio)", r.zeta, "-")
-        row("ω_n (natural freq)", r.omega_n, "rad/s")
-    row("Avg GRF (landing, time)", r.Fgrf_avg_land_time, "N")
-    row("Peak GRF (landing, time)", r.Fgrf_peak_land_time, "N")
-    row("Per-leg peak (landing, time)", r.Fleg_peak_land_time, "N")
+
+    # ---- Inputs (Imperial) ----
+    print("\nInputs (Imperial):")
+    # Common fields
+    print(f"{'mass':>22s}: {p.mass * kg2lbm:.3f} lbm")
+    print(f"{'height':>22s}: {p.height * m2ft:.3f} ft")
+    # Use landing_time_direct if present (PD variant); otherwise skip
+    if hasattr(p, 'stance_time'):
+        print(f"{'stance_time':>22s}: {p.stance_time:.3f} s")
+    if hasattr(p, 'landing_time_direct') and (p.landing_time_direct is not None):
+        print(f"{'landing_time (direct)':>22s}: {p.landing_time_direct:.3f} s")
+    if hasattr(p, 'legs_in_stance'):
+        print(f"{'legs_in_stance':>22s}: {p.legs_in_stance}")
+    if hasattr(p, 'takeoff_peak_ratio'):
+        print(f"{'takeoff_peak_ratio':>22s}: {p.takeoff_peak_ratio}")
+    if hasattr(p, 'landing_peak_ratio'):
+        print(f"{'landing_peak_ratio':>22s}: {p.landing_peak_ratio}")
+    if hasattr(p, 'rise_frac'):
+        print(f"{'rise_frac':>22s}: {p.rise_frac}")
+    if hasattr(p, 'fall_frac'):
+        print(f"{'fall_frac':>22s}: {p.fall_frac}")
+    # Optional PD gains (convert N/m -> lbf/ft, N*s/m -> lbf*s/ft)
+    if hasattr(p, 'kp_per_leg') and p.kp_per_leg is not None:
+        print(f"{'kp_per_leg':>22s}: {p.kp_per_leg * (N2lbf / m2ft):.3f} lbf/ft")
+    if hasattr(p, 'kd_per_leg') and p.kd_per_leg is not None:
+        print(f"{'kd_per_leg':>22s}: {p.kd_per_leg * (N2lbf / m2ft):.3f} lbf*s/ft")
+
+    # ---- Outputs (Imperial) ----
+    print("\nOutputs (Imperial):")
+    row("Takeoff required v0", r.v0 * m2ft, "ft/s")
+    row("Takeoff impulse J",   r.J_takeoff * N2lbf, "lbf*s")
+    row("Avg GRF (takeoff)",   r.Fgrf_avg_takeoff * N2lbf, "lbf")
+    row("Peak GRF (takeoff)",  r.Fgrf_peak_takeoff * N2lbf, "lbf")
+    row("Per-leg avg (takeoff)",  r.Fleg_avg_takeoff * N2lbf, "lbf")
+    row("Per-leg peak (takeoff)", r.Fleg_peak_takeoff * N2lbf, "lbf")
+
+    row("Impact speed (landing)", r.v_impact * m2ft, "ft/s")
+
+    # Landing time (from PD or direct)
+    if hasattr(r, 'landing_time_used'):
+        row("Landing time used", r.landing_time_used, "s")
+
+    # Optional PD diagnostics
+    if hasattr(r, 'zeta') and hasattr(r, 'omega_n') and (r.zeta is not None) and (r.omega_n is not None):
+        row("zeta (damping ratio)", r.zeta, "-")
+        row("omega_n (natural freq.)", r.omega_n, "rad/s")
+
+    row("Avg GRF (landing, time)",  r.Fgrf_avg_land_time * N2lbf, "lbf")
+    row("Peak GRF (landing, time)", r.Fgrf_peak_land_time * N2lbf, "lbf")
+    row("Per-leg peak (landing, time)", r.Fleg_peak_land_time * N2lbf, "lbf")
+
+    # BW-normalized peaks (dimensionless)
+    print("\nBW-normalized (dimensionless):")
+    row("Peak GRF (takeoff) / BW",  (r.Fgrf_peak_takeoff * N2lbf) / BW_lbf, "x")
+    row("Peak GRF (landing) / BW",  (r.Fgrf_peak_land_time * N2lbf) / BW_lbf, "x")
     print()
 
 def plot_profiles(p: JumpParams, r: JumpResults) -> None:
