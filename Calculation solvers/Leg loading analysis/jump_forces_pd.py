@@ -13,7 +13,7 @@ Two ways to set landing dynamics:
 
 Examples:
   python jump_forces_pd.py --mass 11.829 --height 0.53 --stance 0.15 --legs 4 --kp 15000 --kd 500
-  python jump_forces_pd.py --mass 11.829 --height 0.53 --stance 0.15 --land 0.06 --legs 4
+  python jump_forces_pd.py --mass 11.829 --height 0.30 --stance 0.2 --land 0.1 --legs 4
 
 Outputs a summary and two plots (takeoff & landing GRF).
 """

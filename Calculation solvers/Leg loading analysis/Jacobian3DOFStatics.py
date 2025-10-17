@@ -90,9 +90,6 @@ if __name__ == "__main__":
     }
     tau_num = tau.evalf(subs=subs)
 
-    # ==================================================
-    # ========== Imperial Unit Conversions =============
-    # ==================================================
     N_to_lbf   = 0.224809        # 1 N = 0.224809 lbf
     Nm_to_ftlb = 0.73756214927727  # 1 N·m = 0.737562 ft·lbf
 
@@ -100,9 +97,6 @@ if __name__ == "__main__":
     tau_ftlb = tau_num * Nm_to_ftlb
     F_lbf = F * N_to_lbf
 
-    # ==================================================
-    # =============== Report Output ====================
-    # ==================================================
     print("\n" + "="*55)
     print("3DOF LEG STATIC LOAD ANALYSIS (JACOBIAN METHOD)")
     print("Results in Imperial Units")

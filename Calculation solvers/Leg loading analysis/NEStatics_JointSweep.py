@@ -85,7 +85,7 @@ if __name__ == "__main__":
     T3e = dh_transform_sym(theta3, 0, L4, 0)
 
     # Constants
-    F_ext = sp.Matrix([0, 0, 266])  # N upward
+    F_ext = sp.Matrix([0, 0, 200])  # N upward
     masses = [0.5, 0.4, 0.3]
     subs_base = {L1: 0.061, L2: 0.083, L3: 0.146, L4: 0.165, g: 9.81}
 
