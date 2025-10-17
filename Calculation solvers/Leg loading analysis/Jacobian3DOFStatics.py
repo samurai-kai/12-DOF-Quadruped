@@ -73,16 +73,16 @@ if __name__ == "__main__":
 
     # --- External wrench (force only) ---
     # 58 N = 13.03 lbf upward; we keep N for math, convert later
-    F = sp.Matrix([0, 0, 58, 0, 0, 0])
+    F = sp.Matrix([0, 0, 200, 0, 0, 0])
 
     # --- Joint torques (Nm) ---
     tau = sp.simplify(torque_from_force(J, F))
 
     # --- Substitute numeric parameters ---
     subs = {
-        theta1: np.deg2rad(-45),
-        theta2: np.deg2rad(0),
-        theta3: np.deg2rad(0),
+        theta1: np.deg2rad(0),
+        theta2: np.deg2rad(45),
+        theta3: np.deg2rad(90),
         L1: 0.061,
         L2: 0.083,
         L3: 0.146,
