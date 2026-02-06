@@ -90,7 +90,7 @@ if __name__ == "__main__":
     subs_base = {L1: 0.061, L2: 0.083, L3: 0.146, L4: 0.165, g: 9.81}
 
     # Angle sweep ranges (deg)
-    theta1_range = np.linspace(-45, 45, 5)
+    theta1_range = np.linspace(0, 5, 5)
     theta2_range = np.linspace(0, 90, 5)
     theta3_range = np.linspace(0, 135, 5)
 

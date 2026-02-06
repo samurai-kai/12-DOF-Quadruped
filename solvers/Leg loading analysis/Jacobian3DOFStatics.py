@@ -73,7 +73,7 @@ if __name__ == "__main__":
 
     # --- External wrench (force only) ---
     # 58 N = 13.03 lbf upward; we keep N for math, convert later
-    F = sp.Matrix([0, 0, 200, 0, 0, 0])
+    F = sp.Matrix([0, 0, 57, 0, 0, 0])
 
     # --- Joint torques (Nm) ---
     tau = sp.simplify(torque_from_force(J, F))
@@ -81,8 +81,8 @@ if __name__ == "__main__":
     # --- Substitute numeric parameters ---
     subs = {
         theta1: np.deg2rad(0),
-        theta2: np.deg2rad(45),
-        theta3: np.deg2rad(90),
+        theta2: np.deg2rad(0),
+        theta3: np.deg2rad(0),
         L1: 0.061,
         L2: 0.083,
         L3: 0.146,
@@ -130,6 +130,7 @@ if __name__ == "__main__":
     print("\n" + "="*55)
     print("Symbolic Jacobian J (6x3)")
     print("="*55)
+    print(f"J shape: {J.shape}")
     sp.pprint(J)
 
     # Numeric Jacobian with substituted values
@@ -138,4 +139,5 @@ if __name__ == "__main__":
     print("\n" + "="*55)
     print("Numeric Jacobian J_num (evaluated)")
     print("="*55)
+    print(f"J_num shape: {J_num.shape}")
     sp.pprint(J_num)
